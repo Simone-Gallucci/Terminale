@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <title>Terminale Linux Web</title>
+  <title>Web Terminal Linux</title>
   <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
   <style>
     body {
@@ -30,6 +30,39 @@
     .output {
       white-space: pre-wrap;
     }
+    .editor-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.95);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .editor-overlay textarea {
+      width: 80%;
+      height: 60%;
+      background: #111;
+      color: #0f0;
+      border: 2px solid #0f0;
+      padding: 1em;
+      font-family: monospace;
+      font-size: 1em;
+    }
+    .editor-overlay button {
+      margin-top: 10px;
+      padding: 0.5em 2em;
+      font-family: monospace;
+      font-size: 1em;
+      background: #0f0;
+      color: black;
+      border: none;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -38,6 +71,12 @@
     <div class="prompt">
       <span>{{ prompt }}</span>
       <input v-model="input" @keyup.enter="handleCommand" autofocus />
+    </div>
+
+    <!-- Editor sovraimpressione -->
+    <div v-if="showEditor" class="editor-overlay">
+      <textarea v-model="editorContent"></textarea>
+      <button @click="saveEditor">Salva (Ctrl+S)</button>
     </div>
   </div>
 
@@ -49,6 +88,9 @@
         output: [],
         path: ['/'],
         fs: { '/': {} },
+        showEditor: false,
+        currentFile: '',
+        editorContent: ''
       },
       computed: {
         prompt() {
@@ -68,29 +110,23 @@
           const rest = args.slice(1);
           switch (base) {
             case 'ls':
-              this.ls();
-              break;
+              this.ls(); break;
             case 'pwd':
-              this.output.push(this.path.join('/') || '/');
-              break;
+              this.output.push(this.path.join('/') || '/'); break;
             case 'cd':
-              this.cd(rest[0]);
-              break;
+              this.cd(rest[0]); break;
             case 'mkdir':
-              this.mkdir(rest[0]);
-              break;
+              this.mkdir(rest[0]); break;
             case 'touch':
-              this.touch(rest[0]);
-              break;
+              this.touch(rest[0]); break;
             case 'echo':
-              this.echo(rest);
-              break;
+              this.echo(rest); break;
             case 'cat':
-              this.cat(rest[0]);
-              break;
+              this.cat(rest[0]); break;
             case 'clear':
-              this.output = [];
-              break;
+              this.output = []; break;
+            case 'nano':
+              this.nano(rest[0]); break;
             default:
               this.output.push(`comando non trovato: ${base}`);
           }
@@ -142,6 +178,22 @@
           } else {
             this.output.push(`cat: ${name}: File inesistente`);
           }
+        },
+        nano(name) {
+          if (!name) return this.output.push("nano: manca il nome del file");
+          const current = this.currentDir();
+          if (!current[name]) current[name] = '';
+          this.currentFile = name;
+          this.editorContent = current[name];
+          this.showEditor = true;
+        },
+        saveEditor() {
+          const current = this.currentDir();
+          current[this.currentFile] = this.editorContent;
+          this.output.push(`File '${this.currentFile}' salvato con successo.`);
+          this.showEditor = false;
+          this.currentFile = '';
+          this.editorContent = '';
         }
       }
     });
