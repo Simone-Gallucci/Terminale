@@ -14,7 +14,6 @@ window.addEventListener('DOMContentLoaded', () => {
       prompt() {
         const fullPath = this.path.join('/') || '/';
         return `root@kali [${fullPath}]$ `;
-        }
     },
     methods: {
       handleCommand() {
