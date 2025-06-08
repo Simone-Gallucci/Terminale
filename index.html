@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Terminale Linux Web</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+  <style>
+    body {
+      background-color: black;
+      color: limegreen;
+      font-family: monospace;
+      margin: 0;
+      padding: 0;
+    }
+    #app {
+      padding: 1em;
+    }
+    .prompt {
+      display: flex;
+      flex-wrap: wrap;
+    }
+    input {
+      background: none;
+      border: none;
+      color: inherit;
+      font: inherit;
+      outline: none;
+      flex: 1;
+    }
+    .output {
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="output" v-for="line in output">{{ line }}</div>
+    <div class="prompt">
+      <span>{{ prompt }}</span>
+      <input v-model="input" @keyup.enter="handleCommand" autofocus />
+    </div>
+  </div>
+
+  <script>
+    new Vue({
+      el: '#app',
+      data: {
+        input: '',
+        output: [],
+        path: ['/'],
+        fs: { '/': {} },
+      },
+      computed: {
+        prompt() {
+          return `user@web:${this.path.join('/') || '/'}$ `;
+        }
+      },
+      methods: {
+        handleCommand() {
+          const command = this.input.trim();
+          this.output.push(`${this.prompt}${command}`);
+          this.execute(command);
+          this.input = '';
+        },
+        execute(cmd) {
+          const args = cmd.split(' ');
+          const base = args[0];
+          const rest = args.slice(1);
+          switch (base) {
+            case 'ls':
+              this.ls();
+              break;
+            case 'pwd':
+              this.output.push(this.path.join('/') || '/');
+              break;
+            case 'cd':
+              this.cd(rest[0]);
+              break;
+            case 'mkdir':
+              this.mkdir(rest[0]);
+              break;
+            case 'touch':
+              this.touch(rest[0]);
+              break;
+            case 'echo':
+              this.echo(rest);
+              break;
+            case 'cat':
+              this.cat(rest[0]);
+              break;
+            case 'clear':
+              this.output = [];
+              break;
+            default:
+              this.output.push(`comando non trovato: ${base}`);
+          }
+        },
+        currentDir() {
+          return this.path.reduce((acc, dir) => acc[dir], this.fs);
+        },
+        ls() {
+          const dir = this.currentDir();
+          this.output.push(Object.keys(dir).join('  '));
+        },
+        cd(dir) {
+          if (dir === '..') {
+            if (this.path.length > 1) this.path.pop();
+            return;
+          }
+          const current = this.currentDir();
+          if (current[dir] && typeof current[dir] === 'object') {
+            this.path.push(dir);
+          } else {
+            this.output.push(`cd: ${dir}: Nessuna directory`);
+          }
+        },
+        mkdir(name) {
+          if (!name) return this.output.push("mkdir: manca operando");
+          const current = this.currentDir();
+          if (!current[name]) current[name] = {};
+          else this.output.push(`mkdir: impossibile creare la directory '${name}': Esiste già`);
+        },
+        touch(name) {
+          if (!name) return this.output.push("touch: manca operando");
+          const current = this.currentDir();
+          if (!current[name]) current[name] = '';
+        },
+        echo(args) {
+          const text = args.join(' ');
+          if (text.includes('>')) {
+            const [value, file] = text.split('>');
+            const current = this.currentDir();
+            current[file.trim()] = value.trim();
+          } else {
+            this.output.push(text);
+          }
+        },
+        cat(name) {
+          const current = this.currentDir();
+          if (current[name] !== undefined) {
+            this.output.push(current[name]);
+          } else {
+            this.output.push(`cat: ${name}: File inesistente`);
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
