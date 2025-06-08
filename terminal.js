@@ -14,6 +14,7 @@ window.addEventListener('DOMContentLoaded', () => {
       prompt() {
         const fullPath = this.path.join('/') || '/';
         return `root@kali [${fullPath}]$ `;
+      }
     },
     methods: {
       handleCommand() {
@@ -41,7 +42,11 @@ window.addEventListener('DOMContentLoaded', () => {
         }
       },
       currentDir() {
-        return this.path.reduce((acc, dir) => acc[dir], this.fs);
+        // Naviga la struttura del filesystem, se manca una directory ritorna null
+        return this.path.reduce((acc, dir) => {
+          if (acc && acc[dir] && typeof acc[dir] === 'object') return acc[dir];
+          return null;
+        }, this.fs);
       },
       saveFS() {
         localStorage.setItem('fs_data', JSON.stringify(this.fs));
@@ -61,7 +66,12 @@ window.addEventListener('DOMContentLoaded', () => {
       },
       ls() {
         const dir = this.currentDir();
-        this.output.push(Object.keys(dir).join('  '));
+        if (!dir) {
+          this.output.push("Errore: directory non trovata.");
+          return;
+        }
+        const keys = Object.keys(dir);
+        this.output.push(keys.length ? keys.join('  ') : '');
       },
       cd(dir) {
         if (!dir) return;
@@ -69,8 +79,10 @@ window.addEventListener('DOMContentLoaded', () => {
           if (this.path.length > 1) this.path.pop();
         } else {
           const current = this.currentDir();
-          if (current[dir] && typeof current[dir] === 'object') {
+          if (current && current[dir] && typeof current[dir] === 'object') {
             this.path.push(dir);
+          } else if (current && current[dir] && typeof current[dir] !== 'object') {
+            this.output.push(`cd: ${dir}: Non è una directory`);
           } else {
             this.output.push(`cd: ${dir}: Nessuna directory`);
           }
@@ -105,15 +117,21 @@ window.addEventListener('DOMContentLoaded', () => {
       },
       cat(name) {
         const current = this.currentDir();
-        if (current[name] !== undefined) {
-          this.output.push(current[name]);
-        } else {
+        if (!current || current[name] === undefined) {
           this.output.push(`cat: ${name}: file non trovato`);
+        } else if (typeof current[name] === 'object') {
+          this.output.push(`cat: ${name}: è una directory`);
+        } else {
+          this.output.push(current[name]);
         }
       },
       nano(name) {
         if (!name) return this.output.push("nano: manca nome file");
         const current = this.currentDir();
+        if (!current) return this.output.push("nano: directory non trovata");
+        if (current[name] && typeof current[name] === 'object') {
+          return this.output.push(`nano: ${name}: è una directory`);
+        }
         if (!current[name]) current[name] = "";
         this.currentFile = name;
         this.editorContent = current[name];
