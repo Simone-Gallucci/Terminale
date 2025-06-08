@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Termux Web Clone - Input in alto</title>
+  <title>Terminale Web Linux</title>
   <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
   <script src="terminal.js" defer></script>
   <style>
@@ -12,49 +12,59 @@
       margin: 0;
       padding: 0;
       height: 100%;
-      background: black;
-      color: limegreen;
       font-family: monospace;
+      background: #000000; /* sfondo nero terminale */
+      color: #00ffff;       /* blu elettrico per default */
     }
+
     #app {
       display: flex;
       flex-direction: column;
       height: 100dvh;
-      max-height: 100dvh;
+      overflow: hidden;
     }
+
     .prompt-bar {
       display: flex;
       align-items: center;
-      background: #111;
+      background: #000000;
+      color: #00ffff; /* blu elettrico */
       padding: 0.5em;
-      border-bottom: 1px solid #0f0;
+      font-weight: bold;
+      border-bottom: 1px solid #00ffff;
       position: sticky;
       top: 0;
       z-index: 10;
     }
+
     .prompt-bar span {
       margin-right: 0.5em;
-      font-weight: bold;
     }
+
     .prompt-bar input {
       flex: 1;
       background: none;
       border: none;
-      color: inherit;
+      color: #00ffff;
       font: inherit;
       font-size: 1em;
       outline: none;
     }
+
     .output-area {
       flex: 1;
       overflow-y: auto;
       padding: 1em;
       white-space: pre-wrap;
+      color: #ff4444; /* rosso output */
     }
+
     .editor-overlay {
       position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       background: rgba(0,0,0,0.95);
       display: flex;
       flex-direction: column;
@@ -63,26 +73,29 @@
       padding: 1em;
       z-index: 999;
     }
+
     .editor-overlay textarea {
       width: 100%;
       height: 70%;
       max-height: 80%;
-      background: #111;
-      color: #0f0;
-      border: 2px solid #0f0;
+      background: #000;
+      color: #ff4444;
+      border: 2px solid #ff4444;
       font-family: monospace;
       font-size: 1em;
       padding: 1em;
       resize: none;
     }
+
     .editor-overlay button {
       margin-top: 1em;
       font-size: 1em;
       font-family: monospace;
       padding: 0.5em 2em;
-      background: #0f0;
+      background: #ff4444;
       color: black;
       border: none;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -91,7 +104,7 @@
     <!-- PROMPT IN ALTO -->
     <div class="prompt-bar">
       <span>{{ prompt }}</span>
-      <input v-model="input" @keyup.enter="handleCommand" ref="inputField" />
+      <input v-model="input" @keyup.enter="handleCommand" ref="inputField" autocomplete="off" />
     </div>
 
     <!-- OUTPUT -->
