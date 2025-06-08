@@ -2,108 +2,104 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Terminale Hack</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terminale Linux Web</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+  <script src="terminal.js" defer></script>
   <style>
     html, body {
       margin: 0;
       padding: 0;
-      background: black;
-      color: #00ff00;
-      font-family: monospace;
       height: 100%;
+      background: black;
+      color: limegreen;
+      font-family: monospace;
       overflow: hidden;
     }
-
-    #terminal {
-      padding: 10px;
-      height: calc(100vh - 40px);
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 1em;
+      box-sizing: border-box;
+    }
+    .output-area {
+      flex: 1;
       overflow-y: auto;
       white-space: pre-wrap;
+      margin-bottom: 1em;
     }
-
-    #input-line {
+    .prompt {
       display: flex;
-      padding: 5px 10px;
-      background-color: #000;
+      flex-wrap: wrap;
+      align-items: center;
+      background: #111;
+      padding: 0.5em;
       border-top: 1px solid #0f0;
     }
-
-    #prompt {
-      flex-shrink: 0;
-      white-space: nowrap;
+    .prompt span {
+      margin-right: 0.5em;
     }
-
-    #command {
-      background: black;
-      color: #00ff00;
+    input {
+      background: none;
       border: none;
+      color: inherit;
+      font: inherit;
       outline: none;
-      flex-grow: 1;
-      font-family: monospace;
-      font-size: 1em;
+      flex: 1;
+      min-width: 50px;
     }
-
-    #command::placeholder {
-      color: #0f0;
-    }
-
-    #editor {
+    .editor-overlay {
       position: fixed;
-      top: 5%;
-      left: 5%;
-      width: 90%;
-      height: 85%;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.95);
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 1em;
+      box-sizing: border-box;
+    }
+    textarea {
+      width: 100%;
+      max-width: 600px;
+      height: 60%;
       background: #111;
       color: #0f0;
-      display: none;
       border: 2px solid #0f0;
-      padding: 10px;
-      box-sizing: border-box;
-      z-index: 100;
-    }
-
-    #editor textarea {
-      width: 100%;
-      height: 75%;
-      background: black;
-      color: #00ff00;
-      border: none;
+      padding: 1em;
       font-family: monospace;
       font-size: 1em;
       resize: none;
     }
-
-    #editor button {
-      margin-right: 10px;
-      padding: 5px 10px;
-      background: black;
-      color: #00ff00;
-      border: 1px solid #0f0;
-      cursor: pointer;
+    button {
+      margin-top: 10px;
+      padding: 0.5em 2em;
       font-family: monospace;
-    }
-
-    #editor button:hover {
+      font-size: 1em;
       background: #0f0;
       color: black;
+      border: none;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <div id="terminal"></div>
-  <div id="input-line">
-    <span id="prompt"></span>
-    <input type="text" id="command" placeholder="Scrivi un comando..." autofocus autocomplete="off" />
-  </div>
+  <div id="app">
+    <div class="output-area" ref="outputArea">
+      <div class="output" v-for="line in output">{{ line }}</div>
+    </div>
+    <div class="prompt">
+      <span>{{ prompt }}</span>
+      <input v-model="input" @keyup.enter="handleCommand" autocomplete="off" />
+    </div>
 
-  <div id="editor">
-    <h3>Editor</h3>
-    <textarea id="editor-content"></textarea><br>
-    <button onclick="saveFile()">Salva</button>
-    <button onclick="closeEditor()">Chiudi</button>
+    <!-- Editor -->
+    <div v-if="showEditor" class="editor-overlay">
+      <textarea v-model="editorContent"></textarea>
+      <button @click="saveEditor">Salva</button>
+    </div>
   </div>
-
-  <script src="filesystem.js"></script>
 </body>
 </html>
