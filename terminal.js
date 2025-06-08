@@ -241,6 +241,11 @@ switch (base) {
 mounted() {
   this.loadFS();
   this.showEditor = false;
+
+  document.body.addEventListener('click', () => {
+    this.focusInput();
+  });
+
   this.$nextTick(() => {
     this.scrollToBottom();
     this.focusInput();
