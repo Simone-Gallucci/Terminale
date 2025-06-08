@@ -12,6 +12,7 @@ switch (base) {
       case 'clear': this.output = []; break;
       case 'json': this.output.push(JSON.stringify(this.fs, null, 2)); break;
       case 'rm': this.rm(rest); break;
+      case 'mv': this.mv(rest); break;
       case 'help': this.help(); break;
       default: this.output.push(`comando non trovato: ${args[0]}`);
     }
@@ -50,15 +51,6 @@ switch (base) {
       });
       this.output.push(...lines);
     } else if (showAll) {
-      this.output.push(['.', '..', ...entries].join('  '));
-    } else {
-      this.output.push(entries.join('  '));
-    }
-  }B`;
-        return `${type}rw-r--r-- root root ${size} ${name}`;
-      });
-      this.output.push(...lines);
-    } else if (options.includes('-a')) {
       this.output.push(['.', '..', ...entries].join('  '));
     } else {
       this.output.push(entries.join('  '));
@@ -159,21 +151,42 @@ switch (base) {
     }
     this.saveFS();
   },
+  mv(args) {
+    if (args.length < 2) {
+      this.output.push("mv: manca sorgente o destinazione");
+      return;
+    }
+    const [source, target] = args;
+    const current = this.currentDir();
+    if (!(source in current)) {
+      this.output.push(`mv: '${source}' non trovato`);
+      return;
+    }
+    if (target in current) {
+      this.output.push(`mv: '${target}' esiste già`);
+      return;
+    }
+    current[target] = current[source];
+    delete current[source];
+    this.output.push(`'${source}' rinominato in '${target}'`);
+    this.saveFS();
+  },
   help() {
     const cmds = [
-      'ls [-a|-l]        Lista contenuti',
-      'cd <path>         Cambia directory',
-      'pwd               Percorso corrente',
-      'mkdir <name>      Crea cartella',
-      'touch <name>      Crea file',
-      'echo "txt" > file Scrive in file',
-      'cat <file>        Mostra contenuto',
-      'nano <file>       Editor file',
-      'clear             Pulisce output',
-      'json              Mostra fs JSON',
-      'rm <file>         Elimina file',
-      'rm -r <dir>       Elimina cartella',
-      'help              Mostra questo aiuto'
+      'ls [-a|-l|-la]     Lista contenuti',
+      'cd <path>          Cambia directory',
+      'pwd                Percorso corrente',
+      'mkdir <name>       Crea cartella',
+      'touch <name>       Crea file',
+      'echo "txt" > file  Scrive in file',
+      'cat <file>         Mostra contenuto',
+      'nano <file>        Editor file',
+      'clear              Pulisce output',
+      'json               Mostra fs JSON',
+      'rm <file>          Elimina file',
+      'rm -r <dir>        Elimina cartella',
+      'mv <src> <dst>     Rinomina/sposta file',
+      'help               Mostra questo aiuto'
     ];
     this.output.push(...cmds);
   }
@@ -188,3 +201,4 @@ mounted() {
 
 }); });
 
+          
