@@ -2,77 +2,108 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <title>Terminale Linux Web</title>
-  <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
-  <script src="terminal.js" defer></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Terminale Hack</title>
   <style>
-    body {
-      background: black;
-      color: rgb(6, 77, 157);
-      font-family: monospace;
+    html, body {
       margin: 0;
-      padding: 1em;
+      padding: 0;
+      background: black;
+      color: #00ff00;
+      font-family: monospace;
+      height: 100%;
+      overflow: hidden;
     }
-    input {
-      background: none;
-      border: none;
-      color: inherit;
-      font: inherit;
-      outline: none;
-      flex: 1;
-    }
-    .output {
+
+    #terminal {
+      padding: 10px;
+      height: calc(100vh - 40px);
+      overflow-y: auto;
       white-space: pre-wrap;
     }
-    .prompt {
+
+    #input-line {
       display: flex;
-      flex-wrap: wrap;
+      padding: 5px 10px;
+      background-color: #000;
+      border-top: 1px solid #0f0;
     }
-    .editor-overlay {
+
+    #prompt {
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    #command {
+      background: black;
+      color: #00ff00;
+      border: none;
+      outline: none;
+      flex-grow: 1;
+      font-family: monospace;
+      font-size: 1em;
+    }
+
+    #command::placeholder {
+      color: #0f0;
+    }
+
+    #editor {
       position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.95);
-      z-index: 999;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-    }
-    textarea {
-      width: 80%;
-      height: 60%;
+      top: 5%;
+      left: 5%;
+      width: 90%;
+      height: 85%;
       background: #111;
       color: #0f0;
+      display: none;
       border: 2px solid #0f0;
-      padding: 1em;
-      font-family: monospace;
-      font-size: 1em;
+      padding: 10px;
+      box-sizing: border-box;
+      z-index: 100;
     }
-    button {
-      margin-top: 10px;
-      padding: 0.5em 2em;
+
+    #editor textarea {
+      width: 100%;
+      height: 75%;
+      background: black;
+      color: #00ff00;
+      border: none;
       font-family: monospace;
       font-size: 1em;
+      resize: none;
+    }
+
+    #editor button {
+      margin-right: 10px;
+      padding: 5px 10px;
+      background: black;
+      color: #00ff00;
+      border: 1px solid #0f0;
+      cursor: pointer;
+      font-family: monospace;
+    }
+
+    #editor button:hover {
       background: #0f0;
       color: black;
-      border: none;
-      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <div id="app">
-    <div class="output" v-for="line in output">{{ line }}</div>
-    <div class="prompt">
-      <span>{{ prompt }}</span>
-      <input v-model="input" @keyup.enter="handleCommand" autofocus />
-    </div>
-
-    <!-- Editor -->
-    <div v-if="showEditor" class="editor-overlay">
-      <textarea v-model="editorContent"></textarea>
-      <button @click="saveEditor">Salva</button>
-    </div>
+  <div id="terminal"></div>
+  <div id="input-line">
+    <span id="prompt"></span>
+    <input type="text" id="command" placeholder="Scrivi un comando..." autofocus autocomplete="off" />
   </div>
+
+  <div id="editor">
+    <h3>Editor</h3>
+    <textarea id="editor-content"></textarea><br>
+    <button onclick="saveFile()">Salva</button>
+    <button onclick="closeEditor()">Chiudi</button>
+  </div>
+
+  <script src="filesystem.js"></script>
 </body>
 </html>
