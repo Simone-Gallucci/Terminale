@@ -24,11 +24,18 @@ window.addEventListener('DOMContentLoaded', () => {
           this.execute(command);
         }
         this.input = '';
-        this.$nextTick(this.scrollToBottom);
+        this.$nextTick(() => {
+          this.scrollToBottom();
+          this.focusInput();
+        });
       },
       scrollToBottom() {
         const area = this.$refs.outputArea;
         if (area) area.scrollTop = area.scrollHeight;
+      },
+      focusInput() {
+        const input = this.$refs.inputField;
+        if (input) input.focus();
       },
       execute(cmd) {
         const args = cmd.split(' ');
@@ -44,7 +51,7 @@ window.addEventListener('DOMContentLoaded', () => {
           case 'echo': this.echo(rest); break;
           case 'nano': this.nano(rest[0]); break;
           case 'clear': this.output = []; break;
-          case 'json': this.showJSON(); break;
+          case 'json': this.output.push(JSON.stringify(this.fs, null, 2)); break;
           default: this.output.push(`comando non trovato: ${base}`);
         }
       },
@@ -134,15 +141,18 @@ window.addEventListener('DOMContentLoaded', () => {
         this.showEditor = false;
         this.editorContent = '';
         this.currentFile = '';
-        this.$nextTick(this.scrollToBottom);
-      },
-      showJSON() {
-        this.output.push(JSON.stringify(this.fs, null, 2));
+        this.$nextTick(() => {
+          this.scrollToBottom();
+          this.focusInput();
+        });
       }
     },
     mounted() {
       this.loadFS();
-      this.$nextTick(this.scrollToBottom);
+      this.$nextTick(() => {
+        this.scrollToBottom();
+        this.focusInput();
+      });
     }
   });
 });
