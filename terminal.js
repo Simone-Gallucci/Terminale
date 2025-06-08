@@ -12,8 +12,9 @@ window.addEventListener('DOMContentLoaded', () => {
     },
     computed: {
       prompt() {
-        return `user@web:${this.path.join('/') || '/'}$ `;
-      }
+        const fullPath = this.path.join('/') || '/';
+        return `root@kali [${fullPath}]$ `;
+        }
     },
     methods: {
       handleCommand() {
