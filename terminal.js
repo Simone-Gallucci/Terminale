@@ -21,7 +21,7 @@ window.addEventListener('DOMContentLoaded', () => {
       handleCommand() {
         const command = this.input.trim();
         if (command) {
-          this.output.push(`${this.prompt}${command}`);
+          this.output.push($1, '');
           this.history.push(command);
           this.execute(command);
         }
@@ -75,9 +75,7 @@ window.addEventListener('DOMContentLoaded', () => {
         const base = args[0]?.toLowerCase();
         const rest = args.slice(1);
 
-
-        
-      switch (base) {
+        switch (base) {
           case 'ls': this.ls(rest); break;
           case 'pwd': this.output.push(this.path.join('/') || '/'); break;
           case 'cd': this.cd(rest[0]); break;
