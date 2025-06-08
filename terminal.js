@@ -39,7 +39,7 @@ window.addEventListener('DOMContentLoaded', () => {
       },
       execute(cmd) {
         const args = cmd.split(' ');
-        const base = args[0];
+        const base = args[0]?.toLowerCase(); // trasformiamo il comando in minuscolo
         const rest = args.slice(1);
         switch (base) {
           case 'ls': this.ls(); break;
