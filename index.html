@@ -1,139 +1,78 @@
-window.addEventListener('DOMContentLoaded', () => {
-  new Vue({
-    el: '#app',
-    data: {
-      input: '',
-      output: [],
-      path: ['/'],
-      fs: {}, // inizializzato dopo il mounted
-      showEditor: false,
-      currentFile: '',
-      editorContent: ''
-    },
-    computed: {
-      prompt() {
-        return `user@web:${this.path.join('/') || '/'}$ `;
-      }
-    },
-    methods: {
-      handleCommand() {
-        const command = this.input.trim();
-        this.output.push(`${this.prompt}${command}`);
-        this.execute(command);
-        this.input = '';
-      },
-      execute(cmd) {
-        const args = cmd.split(' ');
-        const base = args[0];
-        const rest = args.slice(1);
-        switch (base) {
-          case 'ls': this.ls(); break;
-          case 'pwd': this.output.push(this.path.join('/') || '/'); break;
-          case 'cd': this.cd(rest[0]); break;
-          case 'mkdir': this.mkdir(rest[0]); break;
-          case 'touch': this.touch(rest[0]); break;
-          case 'cat': this.cat(rest[0]); break;
-          case 'echo': this.echo(rest); break;
-          case 'nano': this.nano(rest[0]); break;
-          case 'clear': this.output = []; break;
-          case 'json': this.showJSON(); break;
-          default: this.output.push(`comando non trovato: ${base}`);
-        }
-      },
-      currentDir() {
-        return this.path.reduce((acc, dir) => acc[dir], this.fs);
-      },
-      saveFS() {
-        localStorage.setItem('fs_data', JSON.stringify(this.fs));
-      },
-      loadFS() {
-        const data = localStorage.getItem('fs_data');
-        if (data) {
-          try {
-            this.fs = JSON.parse(data);
-          } catch (e) {
-            this.fs = { '/': {} };
-            console.error("Errore nel JSON, filesystem resettato.");
-          }
-        } else {
-          this.fs = { '/': {} };
-        }
-      },
-      ls() {
-        const dir = this.currentDir();
-        this.output.push(Object.keys(dir).join('  '));
-      },
-      cd(dir) {
-        if (!dir) return;
-        if (dir === '..') {
-          if (this.path.length > 1) this.path.pop();
-        } else {
-          const current = this.currentDir();
-          if (current[dir] && typeof current[dir] === 'object') {
-            this.path.push(dir);
-          } else {
-            this.output.push(`cd: ${dir}: Nessuna directory`);
-          }
-        }
-      },
-      mkdir(name) {
-        if (!name) return this.output.push("mkdir: manca nome");
-        const current = this.currentDir();
-        if (!current[name]) {
-          current[name] = {};
-          this.saveFS();
-        } else this.output.push(`mkdir: '${name}' esiste già`);
-      },
-      touch(name) {
-        if (!name) return this.output.push("touch: manca nome");
-        const current = this.currentDir();
-        if (!current[name]) {
-          current[name] = "";
-          this.saveFS();
-        }
-      },
-      echo(args) {
-        const text = args.join(' ');
-        if (text.includes('>')) {
-          const [value, file] = text.split('>');
-          const current = this.currentDir();
-          current[file.trim()] = value.trim();
-          this.saveFS();
-        } else {
-          this.output.push(text);
-        }
-      },
-      cat(name) {
-        const current = this.currentDir();
-        if (current[name] !== undefined) {
-          this.output.push(current[name]);
-        } else {
-          this.output.push(`cat: ${name}: file non trovato`);
-        }
-      },
-      nano(name) {
-        if (!name) return this.output.push("nano: manca nome file");
-        const current = this.currentDir();
-        if (!current[name]) current[name] = "";
-        this.currentFile = name;
-        this.editorContent = current[name];
-        this.showEditor = true;
-      },
-      saveEditor() {
-        const current = this.currentDir();
-        current[this.currentFile] = this.editorContent;
-        this.output.push(`File '${this.currentFile}' salvato.`);
-        this.saveFS();
-        this.showEditor = false;
-        this.editorContent = '';
-        this.currentFile = '';
-      },
-      showJSON() {
-        this.output.push(JSON.stringify(this.fs, null, 2));
-      }
-    },
-    mounted() {
-      this.loadFS();
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Terminale Linux Web</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+  <script src="terminal.js" defer></script>
+  <style>
+    body {
+      background: black;
+      color: limegreen;
+      font-family: monospace;
+      margin: 0;
+      padding: 1em;
     }
-  });
-});
+    input {
+      background: none;
+      border: none;
+      color: inherit;
+      font: inherit;
+      outline: none;
+      flex: 1;
+    }
+    .output {
+      white-space: pre-wrap;
+    }
+    .prompt {
+      display: flex;
+      flex-wrap: wrap;
+    }
+    .editor-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.95);
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    textarea {
+      width: 80%;
+      height: 60%;
+      background: #111;
+      color: #0f0;
+      border: 2px solid #0f0;
+      padding: 1em;
+      font-family: monospace;
+      font-size: 1em;
+    }
+    button {
+      margin-top: 10px;
+      padding: 0.5em 2em;
+      font-family: monospace;
+      font-size: 1em;
+      background: #0f0;
+      color: black;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="output" v-for="line in output">{{ line }}</div>
+    <div class="prompt">
+      <span>{{ prompt }}</span>
+      <input v-model="input" @keyup.enter="handleCommand" autofocus />
+    </div>
+
+    <!-- Editor -->
+    <div v-if="showEditor" class="editor-overlay">
+      <textarea v-model="editorContent"></textarea>
+      <button @click="saveEditor">Salva</button>
+    </div>
+  </div>
+</body>
+</html>
