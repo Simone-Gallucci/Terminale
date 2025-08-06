@@ -18,6 +18,11 @@ class CommandProcessor {
         this.history.push(trimmedInput);
         this.historyIndex = this.history.length;
 
+        // Gestione redirection con >
+        if (trimmedInput.includes(' > ')) {
+            return this.handleRedirection(trimmedInput);
+        }
+
         // Parsing del comando con pipe support basilare
         const commands = trimmedInput.split('|').map(cmd => cmd.trim());
         let result = '';
@@ -39,6 +44,32 @@ class CommandProcessor {
         }
 
         return result;
+    }
+
+    handleRedirection(input) {
+        const parts = input.split(' > ');
+        if (parts.length !== 2) {
+            throw new Error('Sintassi redirection non valida');
+        }
+
+        const commandPart = parts[0].trim();
+        const filePath = parts[1].trim();
+
+        try {
+            // Esegui il comando e ottieni l'output
+            const commandParts = this.parseCommand(commandPart);
+            const command = commandParts[0];
+            const args = commandParts.slice(1);
+            
+            const output = this.executeCommand(command, args);
+            
+            // Scrivi l'output nel file
+            fileSystem.createFile(filePath, output);
+            
+            return `Output scritto in '${filePath}'`;
+        } catch (error) {
+            throw new Error(`Redirection fallita: ${error.message}`);
+        }
     }
 
     parseCommand(commandStr) {
@@ -108,7 +139,8 @@ class CommandProcessor {
             'uptime': this.uptime.bind(this),
             'uname': this.uname.bind(this),
             'nano': this.nano.bind(this),
-            'reset-fs': this.resetFileSystem.bind(this)
+            'reset-fs': this.resetFileSystem.bind(this),
+            'debug-fs': this.debugFileSystem.bind(this)
         };
 
         if (commandMap[command]) {
@@ -688,6 +720,15 @@ tmpfs            2097152       0   2097152   0% /tmp
     resetFileSystem() {
         fileSystem.clearFileSystem();
         return 'File system resettato allo stato iniziale. Le modifiche sono state cancellate.';
+    }
+
+    debugFileSystem() {
+        const saved = localStorage.getItem('linux-simulator-filesystem');
+        if (saved) {
+            const data = JSON.parse(saved);
+            return `File system salvato il: ${data.timestamp}\nDirectory corrente: ${data.currentPath}\nControlla la console del browser per dettagli completi.`;
+        }
+        return 'Nessun file system salvato trovato.';
     }
 
     // Utility functions

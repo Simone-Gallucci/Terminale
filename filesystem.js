@@ -130,16 +130,24 @@ class FileSystem {
             throw new Error('Directory padre non trovata');
         }
         
-        parent.content[fileName] = {
-            type: 'file',
-            name: fileName,
-            content: content,
-            permissions: '-rw-r--r--',
-            owner: 'user',
-            group: 'user',
-            size: content.length,
-            modified: new Date()
-        };
+        // Se il file esiste già, aggiorna il contenuto
+        if (parent.content[fileName] && parent.content[fileName].type === 'file') {
+            parent.content[fileName].content = content;
+            parent.content[fileName].size = content.length;
+            parent.content[fileName].modified = new Date();
+        } else {
+            // Crea nuovo file
+            parent.content[fileName] = {
+                type: 'file',
+                name: fileName,
+                content: content,
+                permissions: '-rw-r--r--',
+                owner: 'user',
+                group: 'user',
+                size: content.length,
+                modified: new Date()
+            };
+        }
         
         this.saveFileSystem(); // Salva automaticamente
         return true;
@@ -257,6 +265,7 @@ class FileSystem {
                 timestamp: new Date().toISOString()
             };
             localStorage.setItem(this.storageKey, JSON.stringify(data));
+            console.log('File system salvato:', data.timestamp);
         } catch (error) {
             console.warn('Impossibile salvare il file system:', error);
         }
