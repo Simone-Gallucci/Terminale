@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulatore Terminale Linux</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="terminal-container">
+        <div class="terminal-header">
+            <div class="terminal-buttons">
+                <span class="btn close"></span>
+                <span class="btn minimize"></span>
+                <span class="btn maximize"></span>
+            </div>
+            <div class="terminal-title">Terminale Linux - Simulatore</div>
+        </div>
+        
+        <div class="terminal-body">
+            <div id="terminal-output" class="terminal-output"></div>
+            <div class="terminal-input-line">
+                <span id="prompt" class="prompt">user@linux:~$ </span>
+                <input type="text" id="terminal-input" class="terminal-input" autocomplete="off" spellcheck="false">
+            </div>
+        </div>
+    </div>
+
+    <div class="help-panel">
+        <h3>Comandi Disponibili</h3>
+        <div class="commands-grid">
+            <div class="command-category">
+                <h4>Navigazione</h4>
+                <ul>
+                    <li><code>ls</code> - Lista file e directory</li>
+                    <li><code>cd</code> - Cambia directory</li>
+                    <li><code>pwd</code> - Mostra directory corrente</li>
+                    <li><code>find</code> - Cerca file</li>
+                </ul>
+            </div>
+            <div class="command-category">
+                <h4>File Management</h4>
+                <ul>
+                    <li><code>mkdir</code> - Crea directory</li>
+                    <li><code>touch</code> - Crea file</li>
+                    <li><code>rm</code> - Rimuovi file/directory</li>
+                    <li><code>rmdir</code> - Rimuovi directory vuota</li>
+                    <li><code>cp</code> - Copia file</li>
+                    <li><code>mv</code> - Sposta/rinomina</li>
+                </ul>
+            </div>
+            <div class="command-category">
+                <h4>Contenuto File</h4>
+                <ul>
+                    <li><code>cat</code> - Mostra contenuto</li>
+                    <li><code>echo</code> - Stampa testo</li>
+                    <li><code>grep</code> - Cerca in file</li>
+                    <li><code>head</code> - Prime righe</li>
+                    <li><code>tail</code> - Ultime righe</li>
+                    <li><code>nano</code> - Editor di testo</li>
+                </ul>
+            </div>
+            <div class="command-category">
+                <h4>Sistema</h4>
+                <ul>
+                    <li><code>ps</code> - Processi attivi</li>
+                    <li><code>whoami</code> - Utente corrente</li>
+                    <li><code>date</code> - Data e ora</li>
+                    <li><code>clear</code> - Pulisci schermo</li>
+                    <li><code>help</code> - Mostra aiuto</li>
+                </ul>
+            </div>
+        </div>
+        <button id="toggle-help" class="toggle-help">?</button>
+    </div>
+
+    <script src="filesystem.js"></script>
+    <script src="commands.js"></script>
+    <script src="terminal.js"></script>
+</body>
+</html>
