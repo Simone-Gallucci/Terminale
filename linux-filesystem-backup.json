@@ -1,0 +1,273 @@
+{
+  "root": {
+    "type": "directory",
+    "name": "/",
+    "content": {
+      "home": {
+        "type": "directory",
+        "name": "home",
+        "content": {
+          "user": {
+            "type": "directory",
+            "name": "user",
+            "content": {
+              "Documents": {
+                "type": "directory",
+                "name": "Documents",
+                "content": {
+                  "esempio.txt": {
+                    "type": "file",
+                    "name": "esempio.txt",
+                    "content": "Questo è un file di esempio nella cartella Documents.",
+                    "permissions": "-rw-r--r--",
+                    "owner": "user",
+                    "group": "user",
+                    "size": 53,
+                    "modified": "2025-08-06T16:46:53.309Z"
+                  },
+                  "note.md": {
+                    "type": "file",
+                    "name": "note.md",
+                    "content": "# Note\n\n- Questo è un file markdown\n- Puoi usare grep per cercare testo\n- Prova: grep \"markdown\" note.md",
+                    "permissions": "-rw-r--r--",
+                    "owner": "user",
+                    "group": "user",
+                    "size": 104,
+                    "modified": "2025-08-06T16:46:53.310Z"
+                  }
+                },
+                "permissions": "drwxr-xr-x",
+                "owner": "user",
+                "group": "user",
+                "size": 4096,
+                "modified": "2025-08-06T16:46:53.309Z"
+              },
+              "Downloads": {
+                "type": "directory",
+                "name": "Downloads",
+                "content": {},
+                "permissions": "drwxr-xr-x",
+                "owner": "user",
+                "group": "user",
+                "size": 4096,
+                "modified": "2025-08-06T16:46:53.309Z"
+              },
+              "Pictures": {
+                "type": "directory",
+                "name": "Pictures",
+                "content": {},
+                "permissions": "drwxr-xr-x",
+                "owner": "user",
+                "group": "user",
+                "size": 4096,
+                "modified": "2025-08-06T16:46:53.309Z"
+              },
+              "Music": {
+                "type": "directory",
+                "name": "Music",
+                "content": {},
+                "permissions": "drwxr-xr-x",
+                "owner": "user",
+                "group": "user",
+                "size": 4096,
+                "modified": "2025-08-06T16:46:53.309Z"
+              },
+              "Videos": {
+                "type": "directory",
+                "name": "Videos",
+                "content": {},
+                "permissions": "drwxr-xr-x",
+                "owner": "user",
+                "group": "user",
+                "size": 4096,
+                "modified": "2025-08-06T16:46:53.309Z"
+              },
+              "welcome.txt": {
+                "type": "file",
+                "name": "welcome.txt",
+                "content": "Benvenuto nel simulatore di terminale Linux!\nQuesto è un ambiente di apprendimento sicuro.\n\nProva alcuni comandi:\n- ls per vedere i file\n- cd per cambiare directory\n- cat per leggere questo file\n- help per vedere tutti i comandi disponibili",
+                "permissions": "-rw-r--r--",
+                "owner": "user",
+                "group": "user",
+                "size": 240,
+                "modified": "2025-08-06T16:46:53.309Z"
+              },
+              "file.txt": {
+                "type": "file",
+                "name": "file.txt",
+                "content": "txt",
+                "permissions": "-rw-r--r--",
+                "owner": "user",
+                "group": "user",
+                "size": 3,
+                "modified": "2025-08-06T16:47:13.265Z"
+              }
+            },
+            "permissions": "drwxr-xr-x",
+            "owner": "user",
+            "group": "user",
+            "size": 4096,
+            "modified": "2025-08-06T16:46:53.309Z"
+          }
+        },
+        "permissions": "drwxr-xr-x",
+        "owner": "user",
+        "group": "user",
+        "size": 4096,
+        "modified": "2025-08-06T16:46:53.308Z"
+      },
+      "etc": {
+        "type": "directory",
+        "name": "etc",
+        "content": {
+          "passwd": {
+            "type": "file",
+            "name": "passwd",
+            "content": "root:x:0:0:root:/root:/bin/bash\nuser:x:1000:1000:User:/home/user:/bin/bash\n",
+            "permissions": "-rw-r--r--",
+            "owner": "user",
+            "group": "user",
+            "size": 75,
+            "modified": "2025-08-06T16:46:53.310Z"
+          },
+          "hosts": {
+            "type": "file",
+            "name": "hosts",
+            "content": "127.0.0.1 localhost\n::1 localhost\n",
+            "permissions": "-rw-r--r--",
+            "owner": "user",
+            "group": "user",
+            "size": 34,
+            "modified": "2025-08-06T16:46:53.310Z"
+          }
+        },
+        "permissions": "drwxr-xr-x",
+        "owner": "user",
+        "group": "user",
+        "size": 4096,
+        "modified": "2025-08-06T16:46:53.309Z"
+      },
+      "var": {
+        "type": "directory",
+        "name": "var",
+        "content": {
+          "log": {
+            "type": "directory",
+            "name": "log",
+            "content": {
+              "system.log": {
+                "type": "file",
+                "name": "system.log",
+                "content": "2024-01-01 10:00:00 System started\n2024-01-01 10:01:00 User logged in\n2024-01-01 10:02:00 Network connected\n",
+                "permissions": "-rw-r--r--",
+                "owner": "user",
+                "group": "user",
+                "size": 108,
+                "modified": "2025-08-06T16:46:53.310Z"
+              }
+            },
+            "permissions": "drwxr-xr-x",
+            "owner": "user",
+            "group": "user",
+            "size": 4096,
+            "modified": "2025-08-06T16:46:53.309Z"
+          }
+        },
+        "permissions": "drwxr-xr-x",
+        "owner": "user",
+        "group": "user",
+        "size": 4096,
+        "modified": "2025-08-06T16:46:53.309Z"
+      },
+      "usr": {
+        "type": "directory",
+        "name": "usr",
+        "content": {
+          "bin": {
+            "type": "directory",
+            "name": "bin",
+            "content": {},
+            "permissions": "drwxr-xr-x",
+            "owner": "user",
+            "group": "user",
+            "size": 4096,
+            "modified": "2025-08-06T16:46:53.309Z"
+          }
+        },
+        "permissions": "drwxr-xr-x",
+        "owner": "user",
+        "group": "user",
+        "size": 4096,
+        "modified": "2025-08-06T16:46:53.309Z"
+      },
+      "tmp": {
+        "type": "directory",
+        "name": "tmp",
+        "content": {},
+        "permissions": "drwxr-xr-x",
+        "owner": "user",
+        "group": "user",
+        "size": 4096,
+        "modified": "2025-08-06T16:46:53.309Z"
+      },
+      "bin": {
+        "type": "directory",
+        "name": "bin",
+        "content": {},
+        "permissions": "drwxr-xr-x",
+        "owner": "user",
+        "group": "user",
+        "size": 4096,
+        "modified": "2025-08-06T16:46:53.309Z"
+      },
+      "sbin": {
+        "type": "directory",
+        "name": "sbin",
+        "content": {},
+        "permissions": "drwxr-xr-x",
+        "owner": "user",
+        "group": "user",
+        "size": 4096,
+        "modified": "2025-08-06T16:46:53.309Z"
+      },
+      "dev": {
+        "type": "directory",
+        "name": "dev",
+        "content": {},
+        "permissions": "drwxr-xr-x",
+        "owner": "user",
+        "group": "user",
+        "size": 4096,
+        "modified": "2025-08-06T16:46:53.309Z"
+      },
+      "proc": {
+        "type": "directory",
+        "name": "proc",
+        "content": {},
+        "permissions": "drwxr-xr-x",
+        "owner": "user",
+        "group": "user",
+        "size": 4096,
+        "modified": "2025-08-06T16:46:53.309Z"
+      },
+      "sys": {
+        "type": "directory",
+        "name": "sys",
+        "content": {},
+        "permissions": "drwxr-xr-x",
+        "owner": "user",
+        "group": "user",
+        "size": 4096,
+        "modified": "2025-08-06T16:46:53.309Z"
+      }
+    },
+    "permissions": "drwxr-xr-x",
+    "owner": "root",
+    "group": "root",
+    "size": 4096,
+    "modified": "2025-08-06T16:46:53.307Z"
+  },
+  "currentPath": "/home/user",
+  "timestamp": "2025-08-06T16:47:23.098Z",
+  "version": "1.0"
+}
