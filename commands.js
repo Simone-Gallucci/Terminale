@@ -140,11 +140,15 @@ class CommandProcessor {
             'uname': this.uname.bind(this),
             'nano': this.nano.bind(this),
             'reset-fs': this.resetFileSystem.bind(this),
-            'debug-fs': this.debugFileSystem.bind(this)
+            'debug-fs': this.debugFileSystem.bind(this),
+            'export-fs': this.exportFileSystem.bind(this),
+            'import-fs': this.importFileSystem.bind(this),
+            'exit': this.exit.bind(this)
         };
 
         if (commandMap[command]) {
-            return commandMap[command](args, pipeInput);
+            const result = commandMap[command](args, pipeInput);
+            return result;
         } else {
             throw new Error(`${command}: comando non trovato`);
         }
@@ -594,6 +598,12 @@ UTILITÀ:
   help                 Mostra questo aiuto
   man command          Mostra manuale comando
   reset-fs             Resetta file system allo stato iniziale
+  exit                 Salva automaticamente e chiudi sessione
+
+BACKUP/RIPRISTINO:
+  export-fs            Esporta file system come file JSON
+  import-fs            Importa file system da file JSON
+  debug-fs             Mostra informazioni di debug
 
 PIPE E REDIRECTION:
   Usa | per collegare comandi: cat file | grep pattern
@@ -610,7 +620,10 @@ PIPE E REDIRECTION:
             'cd': 'CD(1)\nNOME\n    cd - cambia directory di lavoro\n\nSINOSSI\n    cd [DIRECTORY]\n\nDESCRIZIONE\n    Cambia la directory di lavoro corrente.',
             'cat': 'CAT(1)\nNOME\n    cat - concatena file e stampa su output standard\n\nSINOSSI\n    cat [FILE...]\n\nDESCRIZIONE\n    Concatena FILE(s) e stampa su output standard.',
             'grep': 'GREP(1)\nNOME\n    grep - stampa righe che corrispondono a pattern\n\nSINOSSI\n    grep PATTERN [FILE...]\n\nDESCRIZIONE\n    Cerca PATTERN in ogni FILE e stampa righe corrispondenti.',
-            'nano': 'NANO(1)\nNOME\n    nano - editor di testo semplice\n\nSINOSSI\n    nano [FILE]\n\nDESCRIZIONE\n    nano è un editor di testo semplice da usare.\n\nSCORCIATOIE\n    Ctrl+X  Esci\n    Ctrl+O  Salva\n    Ctrl+G  Aiuto\n    Ctrl+W  Cerca\n    Ctrl+K  Taglia riga\n    Ctrl+U  Incolla riga'
+            'nano': 'NANO(1)\nNOME\n    nano - editor di testo semplice\n\nSINOSSI\n    nano [FILE]\n\nDESCRIZIONE\n    nano è un editor di testo semplice da usare.\n\nSCORCIATOIE\n    Ctrl+X  Esci\n    Ctrl+O  Salva\n    Ctrl+G  Aiuto\n    Ctrl+W  Cerca\n    Ctrl+K  Taglia riga\n    Ctrl+U  Incolla riga',
+            'export-fs': 'EXPORT-FS(1)\nNOME\n    export-fs - esporta file system come file JSON\n\nSINOSSI\n    export-fs\n\nDESCRIZIONE\n    Esporta l\'intero file system virtuale in un file JSON che può essere scaricato e salvato localmente.',
+            'import-fs': 'IMPORT-FS(1)\nNOME\n    import-fs - importa file system da file JSON\n\nSINOSSI\n    import-fs\n\nDESCRIZIONE\n    Importa un file system precedentemente esportato da un file JSON. Sostituisce completamente il file system corrente.',
+            'exit': 'EXIT(1)\nNOME\n    exit - salva automaticamente e chiudi sessione\n\nSINOSSI\n    exit\n\nDESCRIZIONE\n    Salva automaticamente il file system corrente come backup JSON, lo scarica e chiude la sessione del terminale.'
         };
 
         return manPages[args[0]] || `Nessuna voce di manuale per ${args[0]}`;
@@ -729,6 +742,123 @@ tmpfs            2097152       0   2097152   0% /tmp
             return `File system salvato il: ${data.timestamp}\nDirectory corrente: ${data.currentPath}\nControlla la console del browser per dettagli completi.`;
         }
         return 'Nessun file system salvato trovato.';
+    }
+
+    exportFileSystem() {
+        try {
+            const data = {
+                root: fileSystem.root,
+                currentPath: fileSystem.currentPath,
+                timestamp: new Date().toISOString(),
+                version: '1.0'
+            };
+            
+            const jsonString = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `linux-filesystem-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            return `File system esportato come: ${a.download}`;
+        } catch (error) {
+            throw new Error(`Errore nell'esportazione: ${error.message}`);
+        }
+    }
+
+    importFileSystem() {
+        try {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            return new Promise((resolve) => {
+                input.onchange = (event) => {
+                    const file = event.target.files[0];
+                    if (!file) {
+                        resolve('Importazione annullata.');
+                        return;
+                    }
+                    
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const data = JSON.parse(e.target.result);
+                            
+                            // Validazione base
+                            if (!data.root || !data.currentPath) {
+                                resolve('File non valido: mancano dati essenziali.');
+                                return;
+                            }
+                            
+                            // Ripristina le date
+                            fileSystem.restoreDates(data.root);
+                            
+                            // Carica i dati
+                            fileSystem.root = data.root;
+                            fileSystem.currentPath = data.currentPath;
+                            
+                            // Salva nel localStorage
+                            fileSystem.saveFileSystem();
+                            
+                            // Aggiorna il prompt
+                            if (window.terminal) {
+                                window.terminal.updatePrompt();
+                            }
+                            
+                            resolve(`File system importato con successo!\nData backup: ${data.timestamp || 'N/A'}\nDirectory corrente: ${data.currentPath}`);
+                        } catch (error) {
+                            resolve(`Errore nel parsing del file: ${error.message}`);
+                        }
+                    };
+                    reader.readAsText(file);
+                };
+                
+                input.click();
+            });
+        } catch (error) {
+            throw new Error(`Errore nell'importazione: ${error.message}`);
+        }
+    }
+
+    exit() {
+        try {
+            // Salva automaticamente il file system
+            const data = {
+                root: fileSystem.root,
+                currentPath: fileSystem.currentPath,
+                timestamp: new Date().toISOString(),
+                version: '1.0'
+            };
+            
+            const jsonString = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'linux-filesystem-backup.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            // Mostra messaggio di chiusura
+            setTimeout(() => {
+                if (window.terminal) {
+                    window.terminal.showExitMessage();
+                }
+            }, 500);
+            
+            return 'File system salvato. Download in corso...';
+        } catch (error) {
+            throw new Error(`Errore nel salvataggio: ${error.message}`);
+        }
     }
 
     // Utility functions

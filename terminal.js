@@ -8,8 +8,91 @@ class Terminal {
         this.cutBuffer = ''; // Per nano cut/uncut
         
         this.initializeEventListeners();
+        this.setupAutoLoad();
         this.displayWelcomeMessage();
         this.input.focus();
+    }
+
+    setupAutoLoad() {
+        // Crea un input file nascosto per il caricamento automatico
+        this.autoLoadInput = document.createElement('input');
+        this.autoLoadInput.type = 'file';
+        this.autoLoadInput.accept = '.json';
+        this.autoLoadInput.style.display = 'none';
+        this.autoLoadInput.id = 'auto-load-input';
+        document.body.appendChild(this.autoLoadInput);
+        
+        // Verifica se c'è un backup da caricare automaticamente
+        this.checkForAutoLoad();
+    }
+
+    checkForAutoLoad() {
+        // Controlla se localStorage è vuoto o se l'utente vuole caricare un backup
+        const hasLocalStorage = localStorage.getItem('linux-simulator-filesystem');
+        
+        if (!hasLocalStorage) {
+            this.promptForAutoLoad();
+        }
+    }
+
+    promptForAutoLoad() {
+        setTimeout(() => {
+            const loadBackup = confirm(
+                "🔄 CARICAMENTO AUTOMATICO\n\n" +
+                "Non è stato trovato un file system salvato.\n\n" +
+                "Vuoi caricare un backup precedente (linux-filesystem-backup.json)?\n\n" +
+                "• SÌ: Seleziona file backup\n" +
+                "• NO: Inizia con file system nuovo"
+            );
+            
+            if (loadBackup) {
+                this.triggerAutoLoad();
+            }
+        }, 1000);
+    }
+
+    triggerAutoLoad() {
+        this.autoLoadInput.onchange = (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    if (!data.root || !data.currentPath) {
+                        alert('File backup non valido.');
+                        return;
+                    }
+                    
+                    // Ripristina le date
+                    fileSystem.restoreDates(data.root);
+                    
+                    // Carica i dati
+                    fileSystem.root = data.root;
+                    fileSystem.currentPath = data.currentPath;
+                    
+                    // Salva nel localStorage
+                    fileSystem.saveFileSystem();
+                    
+                    // Aggiorna il prompt
+                    this.updatePrompt();
+                    
+                    // Mostra messaggio di successo
+                    this.addOutput(`<span class="output-result">✅ Backup caricato con successo!</span>`);
+                    this.addOutput(`<span class="output-result">📅 Data backup: ${data.timestamp || 'N/A'}</span>`);
+                    this.addOutput(`<span class="output-result">📁 Directory corrente: ${data.currentPath}</span>`);
+                    this.addOutput(`<span class="output-result"></span>`);
+                    
+                } catch (error) {
+                    alert(`Errore nel caricamento del backup: ${error.message}`);
+                }
+            };
+            reader.readAsText(file);
+        };
+        
+        this.autoLoadInput.click();
     }
 
     initializeEventListeners() {
@@ -94,6 +177,17 @@ class Terminal {
         try {
             const result = commandProcessor.processCommand(command);
             
+            // Gestisce le Promise (per import-fs)
+            if (result instanceof Promise) {
+                result.then((resolvedResult) => {
+                    if (resolvedResult) {
+                        this.addOutput(`<span class="output-result">${resolvedResult}</span>`);
+                    }
+                    this.scrollToBottom();
+                });
+                return;
+            }
+            
             if (result === 'CLEAR_SCREEN') {
                 this.clearScreen();
             } else if (result === 'NANO_EDITOR_OPENED') {
@@ -114,6 +208,12 @@ class Terminal {
         
         // Scroll in fondo
         this.scrollToBottom();
+    }
+
+    updatePrompt() {
+        const currentPath = fileSystem.getCurrentPath();
+        const displayPath = currentPath.replace('/home/user', '~');
+        document.getElementById('prompt').textContent = `user@linux:${displayPath}$ `;
     }
 
     navigateHistory(direction) {
@@ -157,7 +257,8 @@ class Terminal {
             'ls', 'cd', 'pwd', 'mkdir', 'touch', 'rm', 'rmdir', 'cp', 'mv',
             'cat', 'echo', 'grep', 'find', 'head', 'tail', 'wc',
             'sort', 'uniq', 'ps', 'whoami', 'date', 'clear', 'help',
-            'man', 'history', 'which', 'file', 'du', 'df', 'uptime', 'uname', 'nano', 'reset-fs'
+            'man', 'history', 'which', 'file', 'du', 'df', 'uptime', 'uname', 
+            'nano', 'reset-fs', 'export-fs', 'import-fs', 'debug-fs', 'exit'
         ];
 
         const matches = commands.filter(cmd => cmd.startsWith(partial));
@@ -254,16 +355,17 @@ ${wasLoaded ? '<span class="output-result">✅ File system precedente caricato -
 <span class="output-result">Questo è un ambiente di apprendimento sicuro per praticare i comandi Linux.</span>
 <span class="output-result">Non verranno apportate modifiche al tuo sistema reale.</span>
 <span class="output-result"></span>
-<span class="output-result">💾 <strong>NOVITÀ: Persistenza Automatica!</strong></span>
-<span class="output-result">• Tutti i file e cartelle che crei vengono salvati automaticamente</span>
-<span class="output-result">• Le modifiche rimangono quando chiudi e riapri il simulatore</span>
-<span class="output-result">• Usa <span class="output-executable">reset-fs</span> per resettare tutto allo stato iniziale</span>
+<span class="output-result">💾 <strong>GESTIONE AUTOMATICA FILE:</strong></span>
+<span class="output-result">• All'avvio: Caricamento automatico backup (se disponibile)</span>
+<span class="output-result">• Durante l'uso: Salvataggio automatico in localStorage</span>
+<span class="output-result">• Con <span class="output-executable">exit</span>: Download automatico backup</span>
+<span class="output-result">• Con <span class="output-executable">import-fs</span>: Caricamento manuale backup</span>
 <span class="output-result"></span>
 <span class="output-result">Comandi utili per iniziare:</span>
 <span class="output-result">  • <span class="output-executable">help</span> - Mostra tutti i comandi disponibili</span>
 <span class="output-result">  • <span class="output-executable">ls</span> - Lista file e directory</span>
 <span class="output-result">  • <span class="output-executable">nano file.txt</span> - Apri editor di testo</span>
-<span class="output-result">  • <span class="output-executable">clear</span> - Pulisci lo schermo</span>
+<span class="output-result">  • <span class="output-executable">exit</span> - Salva e chiudi sessione</span>
 <span class="output-result"></span>
 <span class="output-result">Suggerimenti:</span>
 <span class="output-result">  • Usa TAB per il completamento automatico</span>
@@ -277,6 +379,34 @@ ${wasLoaded ? '<span class="output-result">✅ File system precedente caricato -
 
         this.output.innerHTML = welcomeMessage;
         this.scrollToBottom();
+    }
+
+    showExitMessage() {
+        this.clearScreen();
+        const exitMessage = `
+<span class="output-result">===============================================</span>
+<span class="output-result">        TERMINALE LINUX - SESSIONE CHIUSA</span>
+<span class="output-result">===============================================</span>
+<span class="output-result"></span>
+<span class="output-result">✅ File system salvato automaticamente!</span>
+<span class="output-result">📁 File scaricato: linux-filesystem-backup.json</span>
+<span class="output-result"></span>
+<span class="output-result">💡 Al prossimo avvio:</span>
+<span class="output-result">   • Il simulatore cercherà automaticamente il file backup</span>
+<span class="output-result">   • Se non trovato, userà localStorage</span>
+<span class="output-result">   • Usa 'import-fs' per caricare un backup specifico</span>
+<span class="output-result"></span>
+<span class="output-result">Grazie per aver usato il Simulatore Terminale Linux!</span>
+<span class="output-result">Ricarica la pagina per iniziare una nuova sessione.</span>
+<span class="output-result"></span>
+<span class="output-result">===============================================</span>`;
+
+        this.output.innerHTML = exitMessage;
+        this.scrollToBottom();
+        
+        // Disabilita l'input
+        this.input.disabled = true;
+        this.input.placeholder = "Sessione terminata - Ricarica la pagina";
     }
 
     openNanoEditor(filePath) {
