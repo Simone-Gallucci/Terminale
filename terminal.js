@@ -5,12 +5,53 @@ class Terminal {
         this.output = document.getElementById('terminal-output');
         this.historyIndex = -1;
         this.completionOptions = [];
-        this.cutBuffer = ''; // Per nano cut/uncut
-        
+        this.cutBuffer = '';
+
+        this.isMobile = this.detectMobile();
+        if (this.isMobile) {
+            this.setupMobileUI();
+        }
+
         this.initializeEventListeners();
         this.setupAutoLoad();
         this.displayWelcomeMessage();
         this.input.focus();
+    }
+
+    detectMobile() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+
+    setupMobileUI() {
+        // Aggiungi classe al body per CSS responsive
+        document.body.classList.add('mobile-terminal');
+
+        // Rendi input più grande
+        this.input.style.fontSize = '1.2em';
+        this.input.style.height = '2.5em';
+        this.input.setAttribute('autocomplete', 'off');
+
+        // Aggiungi pulsanti rapidi sotto l'input
+        const btnBar = document.createElement('div');
+        btnBar.className = 'mobile-btn-bar';
+        btnBar.innerHTML = `
+            <button id="btn-enter" title="Invia">⏎</button>
+            <button id="btn-tab" title="Tab">⇥</button>
+            <button id="btn-clear" title="Clear">🧹</button>
+        `;
+        this.input.parentNode.appendChild(btnBar);
+
+        document.getElementById('btn-enter').onclick = () => {
+            this.processCommand();
+        };
+        document.getElementById('btn-tab').onclick = () => {
+            this.handleTabCompletion();
+            this.input.focus();
+        };
+        document.getElementById('btn-clear').onclick = () => {
+            this.clearScreen();
+            this.input.focus();
+        };
     }
 
     setupAutoLoad() {
@@ -436,6 +477,7 @@ ${wasLoaded ? '<span class="output-result">✅ File system precedente caricato -
                     <span>^C Cur Pos</span>
                     <span>^V Next Page</span>
                 </div>
+                <div class="nano-mobile-btns" style="display:none;"></div>
             </div>
         `;
 
@@ -452,28 +494,40 @@ ${wasLoaded ? '<span class="output-result">✅ File system precedente caricato -
             const content = fileSystem.getFileContent(filePath);
             textarea.value = content;
         } catch (error) {
-            // File nuovo, lascia vuoto
             textarea.value = '';
         }
 
-        // Aggiorna i numeri di riga
         this.updateLineNumbers(textarea, lineNumbers);
 
-        // Event listeners per l'editor
         textarea.addEventListener('input', () => {
             this.updateLineNumbers(textarea, lineNumbers);
         });
-
         textarea.addEventListener('scroll', () => {
             lineNumbers.scrollTop = textarea.scrollTop;
         });
-
         textarea.addEventListener('keydown', (e) => {
             this.handleNanoKeydown(e, filePath, editorContainer);
         });
-
-        // Focus sull'editor
         textarea.focus();
+
+        // Se mobile, aggiungi pulsanti rapidi nano
+        if (this.isMobile) {
+            const nanoBtns = editorContainer.querySelector('.nano-mobile-btns');
+            nanoBtns.style.display = 'flex';
+            nanoBtns.style.justifyContent = 'center';
+            nanoBtns.style.gap = '10px';
+            nanoBtns.innerHTML = `
+                <button id="nano-save-btn" title="Salva (Ctrl+O)">💾 Salva</button>
+                <button id="nano-exit-btn" title="Esci (Ctrl+X)">⏹ Esci</button>
+            `;
+            document.getElementById('nano-save-btn').onclick = () => {
+                this.saveNanoFile(filePath, editorContainer);
+                textarea.focus();
+            };
+            document.getElementById('nano-exit-btn').onclick = () => {
+                this.closeNanoEditor(editorContainer, false);
+            };
+        }
     }
 
     updateLineNumbers(textarea, lineNumbers) {
